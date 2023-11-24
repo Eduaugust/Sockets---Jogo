@@ -7,15 +7,16 @@ from projetil import Projetil
 
 class Player():
 
-    def __init__(self, x, y, color, n: Network, win: pygame.Surface, id: str = str(uuid.uuid4()), team: str = 'red', width = 25, height = 25, life: int = 4, maxLife: int = 4):
+    def __init__(self, userName, x, y, color, n: Network, win: pygame.Surface, id: str = str(uuid.uuid4()), team: str = 'red', width = 25, height = 25, life: int = 4, maxLife: int = 4):
         self.id = id
+        self.userName = userName
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.color = color
         self.rect = (x,y,width,height)
-        self.vel = 3
+        self.vel = 10
         self.moveX = 0
         self.moveY = 0
         self.n = n
@@ -26,6 +27,7 @@ class Player():
     def __str__(self):
         player = dict()
         player[self.id] = {
+            'userName': self.userName,
             'x': self.x,
             'y': self.y,
             'team': self.team,
@@ -45,16 +47,16 @@ class Player():
     def move(self):
         keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.moveX -= self.vel
 
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             self.moveX += self.vel
 
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
             self.moveY -= self.vel
 
-        if keys[pygame.K_DOWN]:
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             self.moveY += self.vel
     
     def shoot(self):
@@ -70,10 +72,10 @@ class Player():
         # Normalize the distance
         distance = (distance[0] / magnitude, distance[1] / magnitude)
         # Get the vector of the direction of the bullet from the player to the mouse
-        bulletVector = (distance[0] * 10, distance[1] * 10)        
+        bulletVector = (distance[0] * 2, distance[1] * 2)        
 
         # Create a bullet
-        bullet = Projetil(self.id, self.x, self.y, bulletVector[0], bulletVector[1],self.team, self.n)
+        bullet = Projetil(self.id, self.userName, self.x, self.y, bulletVector[0], bulletVector[1],self.team, self.n)
         return bullet
 
     def atualizaEstadoAtual(self, x: int, y: int, team: str, life: int, maxLife: int):

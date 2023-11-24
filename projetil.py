@@ -1,4 +1,4 @@
-import time
+import time 
 import uuid
 
 import pygame
@@ -8,9 +8,10 @@ from network import Network
 
 
 class Projetil:
-    def __init__(self, userId: str, x: int, y: int, moveX: int, moveY: int, team: str, n: Network, radius: int = 10, timeToDestroy: int = 100, atualTimeToDestroy: int = 0, damage: int = 1) -> None:
+    def __init__(self, userId: str, userName: str, x: int, y: int, moveX: int, moveY: int, team: str, n: Network, radius: int = 10, timeToDestroy: int = 500, atualTimeToDestroy: int = 0, damage: int = 1) -> None:
         self.id = str(uuid.uuid4())
         self.userId = userId
+        self.userName = userName
         self.x = x
         self.y = y
         self.color = (255, 0, 0) if team == 'red' else (0, 0, 255)
@@ -27,6 +28,7 @@ class Projetil:
         return str({
             self.id: {
                 'userId': self.userId,
+                'userName': self.userName,
                 'x': self.x,
                 'y': self.y,
                 'team': self.team,
@@ -39,8 +41,7 @@ class Projetil:
             }
         })
 
-    def draw(self, win, centroRelativoX, centroRelativoY, camera) -> None:
+    def draw(self, win) -> None:
         # Format to self.y have only 3 decimals
-        debug(f"Projetil: - {int(self.x)}, {int(self.y)}, {centroRelativoX, centroRelativoY, camera}", 10, 10)
         pygame.draw.circle(win, self.color, radius=self.radius, center=(self.x, self.y))
     
