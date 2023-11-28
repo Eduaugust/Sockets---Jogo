@@ -3,13 +3,15 @@ import socket
 
 
 class Network:
-    def __init__(self):
+    def __init__(self, initPlayer: dict):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = "192.168.2.104"
+        self.server = "127.0.0.1"
         self.port = 3000
         self.addr = (self.server, self.port)
         self.bufferSize = 16384
         self.UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        self.firstSend = self.send(str(initPlayer))
+        self.firstSend = self.firstSend if self.firstSend else None
 
     def send(self, data: str):
         try:

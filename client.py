@@ -1,4 +1,5 @@
 from ast import Tuple
+import re
 from threading import Thread, local
 from time import time
 from typing import List
@@ -9,6 +10,7 @@ from network import Network
 from player import Player
 from projetil import Projetil
 from mapa import DominationData, inicializa_mapa, retorna_mapa
+from telaInicial import TelaInicial
 
 width, height = 1080, 720
 win = pygame.display.set_mode((width, height))
@@ -25,8 +27,6 @@ def draw_gradient_rect(win, x, y, width, height, color1, color2, percentage):
     color2_width = width - color1_width
 
     try:
-
-
         # Desenha a primeira cor
         pygame.draw.rect(win, color1, pygame.Rect(x, y, color1_width, height))
 
@@ -78,10 +78,15 @@ def redrawWindow(win, players: List[Player], projectils: List[Projetil], chat_bo
 
 def atualizaEstadoAtual(p: Player, n: Network, chat_box: ChatBox, kill_box: ChatBox, newBullet: Projetil | None = None, message: str | None = None) -> tuple[List[Player], List[Projetil], DominationData] | None:
     message = p.userName + ": " + message if message is not None else "None"
+    if n.firstSend is None:
+        print("Não conseguiu se conectar")
+        return
     stateAtual = {
         "Players": str(p), 
         "NewBullet": str(newBullet) if newBullet is not None else "None",
         "NewMessage": message,
+        "HostId": n.firstSend['HostId'],
+        "idOfPlayer": p.id,
         }
     stateAtual: dict | None = n.send(str(stateAtual))
     if stateAtual is None:
@@ -143,13 +148,36 @@ def atualizaEstadoAtual(p: Player, n: Network, chat_box: ChatBox, kill_box: Chat
 
     dominationData = DominationData(dominationData)
 
+    # --------- Host ---------
+    n.firstSend['HostId'] = stateAtual['HostId']
+
     return allPlayers, allProjectils, dominationData
 
+def checkIfSomeoneWon(dominationData: DominationData):
+    if dominationData.team_won == 'blue':
+        return "blue"
+    elif dominationData.team_won == 'red':
+        return "red"
+    return "None"
+
 def main():
+    response = tela_inicial()
+    if response['host'] == 'True':
+        response['NewHost'] = 'True'
+    del response['host']
+
+    if response['gameSelected'] != 'None':
+        print("Entrando em um jogo existente")
+        response['HostId'] = response['gameSelected']
+
     run = True
-    n = Network()
-    startPos = (0, 0)
-    p = Player("Teste" , startPos[0],startPos[1],(0,255,0), n, win)
+    n = Network(response)
+    if n.firstSend is None:
+        print("Não conseguiu se conectar")
+        return
+    idOfPlayer = n.firstSend['idOfPlayer']
+    p = n.firstSend['Players'][idOfPlayer]
+    p = Player(p['userName'], p['x'], p['y'], (0, 255, 0), n, win, idOfPlayer, p['team'], life=p['life'], maxLife=p['maxLife'], lastTime=p['lastTime'])
 
     # --------- Mapa ---------
     mapa = inicializa_mapa()
@@ -175,6 +203,17 @@ def main():
     bulletTime = 0 # Time para atirar dnv
     # --------- Loop --------- 
     while run:
+        
+        if checkIfSomeoneWon(dominationData) != "None":
+            run = False
+            # Mostrar tela de vitória ou derrota
+            print(p.team, checkIfSomeoneWon(dominationData))
+            if p.team == checkIfSomeoneWon(dominationData):
+                print("Você ganhou")
+            else:
+                print("Você perdeu")
+            break
+
         newBullet = None
         if bulletTime > 0:
             bulletTime -= 1
@@ -234,6 +273,40 @@ def main():
         allPlayers, allProjectils, dominationData = response
 
         clock.tick(30)
+
+def tela_inicial():
+    n = Network({"getHosts": "True"})
+    if n.firstSend is None:
+        raise Exception("Não conseguiu se conectar")
+    if 'None' in n.firstSend.keys():
+        games = {}
+    else:
+        games = n.firstSend
+    tela = TelaInicial(1080, 720, games)
+    clock = pygame.time.Clock()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            tela.handle_event(event)
+
+        tela.draw()
+        pygame.display.update()
+        clock.tick(30)
+
+        if tela.username:
+            # check if username is valid using regex -> just 10 letters
+            reg = re.compile(r'^[a-zA-Z0-9]{1,10}$')
+            if reg.match(tela.username):
+                if tela.beHost or tela.gameSelected:
+                    response = {"username": tela.username, "host": 'True' if tela.beHost else "None", "gameSelected": tela.gameSelected if tela.gameSelected else "None"}
+                    print(response)
+                    return response
+            
+
+
 
 if __name__ == "__main__":
     main()
