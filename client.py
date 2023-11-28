@@ -207,7 +207,7 @@ def main():
         if checkIfSomeoneWon(dominationData) != "None":
             run = False
             # Mostrar tela de vitória ou derrota
-            print(p.team, checkIfSomeoneWon(dominationData))
+            print(p.team, checkIfSomeoneWon(dominationData), dominationData)
             if p.team == checkIfSomeoneWon(dominationData):
                 print("Você ganhou")
             else:

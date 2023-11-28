@@ -43,6 +43,14 @@ class DominationData:
         self.redColor = (255, 100, 100)
         self.grayColor = (100, 100, 100)
         self.greenColor = (100, 255, 100)
+    
+    def __str__(self) -> str:
+        return f'\nTime vencedor: {self.team_won}\n' \
+               f'Time dominante: {self.team_dominating}\n' \
+               f'Tempo para o time azul vencer: {self.time_to_blue_win}\n' \
+               f'Tempo para o time vermelho vencer: {self.time_to_red_win}\n' \
+               f'Tempo de progresso do time azul: {self.progress_time_blue}\n' \
+               f'Tempo de progresso do time vermelho: {self.progress_time_red}\n'
 
 def inicializa_mapa():
     objetos = []

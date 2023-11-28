@@ -72,17 +72,19 @@ def updateTeamDominating() -> None:
     blue = 0
     # Print state like team won and others
     # Clear terminal os
-    print("\033c")
-    print(f"TeamDominating: {stateGlobal[messageDict['HostId']]['TeamDominating']}",)
-    print(f"TimeToBlueWin: {stateGlobal[messageDict['HostId']]['TimeToBlueWin']}",)
-    print(f"TimeToRedWin: {stateGlobal[messageDict['HostId']]['TimeToRedWin']}",)
-    print(f"ProgressTimeBlue: {stateGlobal[messageDict['HostId']]['ProgressTimeBlue']}",)
-    print(f"ProgressTimeRed: {stateGlobal[messageDict['HostId']]['ProgressTimeRed']}",)
-    print(f"TeamWon: {stateGlobal[messageDict['HostId']]['TeamWon']}",)
-    print(f"Time to blue win: {time() - stateGlobal[messageDict['HostId']]['TimeToBlueWin'][1] + stateGlobal[messageDict['HostId']]['TimeToBlueWin'][0] }")
-    print(f"Time to red win: {time() - stateGlobal[messageDict['HostId']]['TimeToRedWin'][1] + stateGlobal[messageDict['HostId']]['TimeToRedWin'][0] }")
+    # print(f"TeamDominating: {stateGlobal[messageDict['HostId']]['TeamDominating']}",)
+    # print(f"TimeToBlueWin: {stateGlobal[messageDict['HostId']]['TimeToBlueWin']}",)
+    # print(f"TimeToRedWin: {stateGlobal[messageDict['HostId']]['TimeToRedWin']}",)
+    # print(f"ProgressTimeBlue: {stateGlobal[messageDict['HostId']]['ProgressTimeBlue']}",)
+    # print(f"ProgressTimeRed: {stateGlobal[messageDict['HostId']]['ProgressTimeRed']}",)
+    # print(f"TeamWon: {stateGlobal[messageDict['HostId']]['TeamWon']}",)
+    # timeToBlueWon = time() - stateGlobal[messageDict['HostId']]["TimeToBlueWin"][1] + stateGlobal[messageDict['HostId']]["TimeToBlueWin"][0] if stateGlobal[messageDict['HostId']]["TimeToBlueWin"][1] != 0   else 0
+    # timeToRedWon = time() - stateGlobal[messageDict['HostId']]["TimeToRedWin"][1] + stateGlobal[messageDict['HostId']]["TimeToRedWin"][0] if stateGlobal[messageDict['HostId']]["TimeToRedWin"][1] != 0 else 0
+    # print(f"TimeToBlueWon: {timeToBlueWon}",)
+    # print(f"TimeToRedWon: {timeToRedWon}",)
+    
     # Update the team dominating
-    timeToWon = 10 * 1
+    timeToWon = 10 * 3
     for idPlayer in stateGlobal[messageDict['HostId']]["Players"]:
         tentandoDominar = checkColsionPlayerAndAsterisk(stateGlobal[messageDict['HostId']]["Players"][idPlayer]["x"], stateGlobal[messageDict['HostId']]["Players"][idPlayer]["y"], 0, 0)
         if not tentandoDominar:
@@ -99,7 +101,8 @@ def updateTeamDominating() -> None:
             else:
                 if time() - stateGlobal[messageDict['HostId']]["ProgressTimeRed"] >= 10:
                     # Save the blue time
-                    stateGlobal[messageDict['HostId']]["TimeToBlueWin"][0] = time() - stateGlobal[messageDict['HostId']]["TimeToBlueWin"][1]
+                    stateGlobal[messageDict['HostId']]["TimeToBlueWin"][0] += time() - stateGlobal[messageDict['HostId']]["TimeToBlueWin"][1]
+                    stateGlobal[messageDict['HostId']]["TimeToBlueWin"][1] = 0
 
                     # Set new time to red
                     stateGlobal[messageDict['HostId']]["TimeToRedWin"][1] = time()
@@ -116,16 +119,20 @@ def updateTeamDominating() -> None:
 
         else: 
             # TeamDominating is None
+            decreaseBlueProgress()
 
             # Init the progress time
             if stateGlobal[messageDict['HostId']]["ProgressTimeRed"] == 0 and stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] == 0:
                 stateGlobal[messageDict['HostId']]["ProgressTimeRed"] = time()
-            elif time() - stateGlobal[messageDict['HostId']]["ProgressTimeRed"] >= 10:
+            elif stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] == 0  and  time() - stateGlobal[messageDict['HostId']]["ProgressTimeRed"] >= 10:
                 # Set new time to red
                 stateGlobal[messageDict['HostId']]["TimeToRedWin"][1] = time()
                 stateGlobal[messageDict['HostId']]["ProgressTimeRed"] = 0
                 stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] = 0
                 stateGlobal[messageDict['HostId']]["TeamDominating"] = 'red'
+            elif stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] != 0:
+                # Decrement the time that blue team is dominating
+                stateGlobal[messageDict['HostId']]['ProgressTimeBlue'] += 1/15
             
     elif blue > 0 and red == 0:
         if stateGlobal[messageDict['HostId']]["TeamDominating"] == 'red':
@@ -135,7 +142,8 @@ def updateTeamDominating() -> None:
             else:
                 if time() - stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] >= 10:
                     # Save the red time
-                    stateGlobal[messageDict['HostId']]["TimeToRedWin"][0] = time() - stateGlobal[messageDict['HostId']]["TimeToRedWin"][1]
+                    stateGlobal[messageDict['HostId']]["TimeToRedWin"][0] += time() - stateGlobal[messageDict['HostId']]["TimeToRedWin"][1]
+                    stateGlobal[messageDict['HostId']]["TimeToRedWin"][1] = 0
 
                     # Set new time to blue
                     stateGlobal[messageDict['HostId']]["TimeToBlueWin"][1] = time()
@@ -151,37 +159,27 @@ def updateTeamDominating() -> None:
                     stateGlobal[messageDict['HostId']]["ProgressTimeRed"] = 0
         else:
             # TeamDominating is None
+            decreaseRedProgress()
 
             # Init the progress time
             if stateGlobal[messageDict['HostId']]["ProgressTimeRed"] == 0 and stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] == 0:
                 stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] = time()
-                stateGlobal[messageDict['HostId']]["ProgressTimeRed"] = 0
-            elif time() - stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] >= 10:
+            elif stateGlobal[messageDict['HostId']]["ProgressTimeRed"] == 0  and time() - stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] >= 10:
                 # Set new time to blue
                 stateGlobal[messageDict['HostId']]["TimeToBlueWin"][1] = time()
                 stateGlobal[messageDict['HostId']]["ProgressTimeRed"] = 0
                 stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] = 0
                 stateGlobal[messageDict['HostId']]["TeamDominating"] = 'blue'
+            elif stateGlobal[messageDict['HostId']]["ProgressTimeRed"] != 0:
+                # Decrement the time that red team is dominating
+                stateGlobal[messageDict['HostId']]['ProgressTimeRed'] += 1/15
 
-            
     elif blue > 0 and red > 0:
-        # If progress time is not 0 in red
-        if stateGlobal[messageDict['HostId']]["ProgressTimeRed"] != 0:
-            # Progress time dont move, anything do not move
-            stateGlobal[messageDict['HostId']]["ProgressTimeRed"] += 1/15
-        elif stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] != 0:
-            # Progress time dont move, anything do not move
-            stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] += 1/15
+        decreaseBlueProgress()
+        decreaseRedProgress()
     elif blue == 0 and red == 0:
-        # If progress time is not 0, then, reset it if the time is greater than 10 seconds
-        if stateGlobal[messageDict['HostId']]["ProgressTimeRed"] != 0:
-            stateGlobal[messageDict['HostId']]["ProgressTimeRed"] += 1/15
-            if time() - stateGlobal[messageDict['HostId']]["ProgressTimeRed"] < 0:
-                stateGlobal[messageDict['HostId']]["ProgressTimeRed"] = 0
-        if stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] != 0:
-            stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] += 1/15
-            if time() - stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] < 0:
-                stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] = 0
+        decreaseRedProgress()
+        decreaseBlueProgress()
     # Check if someone won, just if progress time is 0
 
     if stateGlobal[messageDict['HostId']]["ProgressTimeRed"] == 0 and stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] == 0:
@@ -201,6 +199,22 @@ def updateTeamDominating() -> None:
                 stateGlobal[messageDict['HostId']]["TimeToRedWin"][1] = 0
                 stateGlobal[messageDict['HostId']]["TeamDominating"] = 'red'
                 stateGlobal[messageDict['HostId']]["TeamWon"] = 'red'
+
+def decreaseBlueProgress() -> None:
+    if stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] != 0:
+        # Progress time dont move, anything do not move
+        stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] += 1/15
+    if time() - stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] < 0:
+        stateGlobal[messageDict['HostId']]["ProgressTimeBlue"] = 0
+
+def decreaseRedProgress() -> None:
+    # If progress time is not 0 in red
+    if stateGlobal[messageDict['HostId']]["ProgressTimeRed"] != 0:
+        # Progress time dont move, anything do not move
+        stateGlobal[messageDict['HostId']]["ProgressTimeRed"] += 1/15
+    if time() - stateGlobal[messageDict['HostId']]["ProgressTimeRed"] < 0:
+            stateGlobal[messageDict['HostId']]["ProgressTimeRed"] = 0
+    
 
 def checkColisionWithMapa(x, y, moveX, moveY) -> List[int]:
     # Check if the player will colide with the map
